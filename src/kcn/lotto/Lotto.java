@@ -2,6 +2,8 @@ package kcn.lotto;
 
 import kcn.printy.interfaces.IPresent;
 
+import javax.swing.*;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -9,21 +11,62 @@ public class Lotto
 {
     IPresent ui;
     HashSet<Integer> numberSet;
-    NumberSetGenerator setGenerator;
+    HashMap<Integer, Integer> prizeMap;
 
     public Lotto(IPresent iPresent)
     {
         ui = iPresent;
         numberSet = new HashSet<>();
-        setGenerator = new NumberSetGenerator();
+
+        prizeMap = new HashMap<>();
+        prizeMap.put(4, 125);
+        prizeMap.put(5, 1500);
+        prizeMap.put(6, 125000);
+        prizeMap.put(7, 1000000);
     }
 
-    public void PlayLotto()
+    public Lotto(IPresent iPresent, int prize4Correct, int prize5Correct, int prize6Correct, int prize7Correct)
     {
-        HashSet<Integer> winningNumbers = setGenerator.returnRandomSubset(7, 36);
+        ui = iPresent;
+        numberSet = new HashSet<>();
+
+        prizeMap = new HashMap<>();
+        prizeMap.put(4, prize4Correct);
+        prizeMap.put(5, prize5Correct);
+        prizeMap.put(6, prize6Correct);
+        prizeMap.put(7, prize7Correct);
+    }
+
+    public IPresent getUI(){ return ui; }
+
+    /**
+     * Method executes a single game of lotto, and returns number
+     * of user successfully matched/guessed numbers.
+     */
+    public int PlayLotto()
+    {
+        /* Generate data */
+        HashSet<Integer> winningNumbers = returnRandomSet(7, 36);
         HashSet<Integer> userNumbers = receiveUserInputNumbers();
-        ui.present("Winning numbers are: " + winningNumbers);
-        checkNumberOfMatches(userNumbers, winningNumbers);
+        /* Present results */
+        ui.present("Winning numbers are:");
+        ui.present(winningNumbers.toString());
+        ui.present("Use choose:");
+        ui.present(userNumbers.toString());
+
+        return checkNumberOfMatches(userNumbers, winningNumbers);
+    }
+
+    public HashSet<Integer> returnRandomSet(int sizeSet, int maxNumber)
+    {
+        HashSet<Integer> returnSet = new HashSet<>();
+
+        while(returnSet.size() < sizeSet)
+        {
+            returnSet.add((int)(Math.random() * maxNumber));
+        }
+
+        return returnSet;
     }
 
     /**
@@ -72,8 +115,11 @@ public class Lotto
     {
         userNumbers.retainAll(winningNumbers);
 
-        ui.present(
-                userNumbers.size() > 3 ? "Congrats," : "Sorry, " + " you had " + userNumbers.size() + "right.");
+        String message = userNumbers.size() > 3 ? "Congrats, you have " : "Sorry, only got "
+                                                                          + userNumbers.size() + " numbers right.";
+
+        ui.present(message);
+
         return userNumbers.size();
     }
 }
